@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HPO Agent · 本地实验台</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><div class="eyebrow">MACHINE LEARNING / LOCAL MODE</div>
+      <h1>HPO Agent <span>本地实验台</span></h1>
+      <p>从数据开始，逐步构建可审批、可追踪的机器学习实验。</p>
+      <div id="health" class="badge" role="status">正在检查后端…</div>
+    </header>
+    <div class="grid">
+      <aside>
+        <section class="card"><h2>01 / 上传数据集</h2>
+          <p class="muted">CSV · UTF-8 / GB18030<br>最多 {{ max_upload_mb }} MiB、{{ max_dataset_rows }} 行</p>
+          <form id="upload-form">
+            <label for="csv-file">选择本地 CSV 文件</label>
+            <input id="csv-file" type="file" accept=".csv,text/csv" required>
+            <p><button id="upload-button" type="submit">上传并检查</button></p>
+          </form>
+          <p id="upload-message" class="notice" role="status" aria-live="polite"></p>
+        </section>
+        <section class="card"><h2>数据集</h2><p class="muted">显示最近 100 个上传记录</p><div id="dataset-list">正在读取…</div></section>
+      </aside>
+      <section class="card" id="dataset-detail">
+        <h2>02 / 检查数据</h2>
+        <div id="empty-state"><p>上传 CSV 后，在这里查看数据质量、字段和预览。</p><p class="muted">原始文件保留在本机。此阶段不会调用 LLM 或启动模型训练。</p></div>
+        <div id="detail-content" hidden>
+          <h3 id="dataset-name"></h3><p class="muted"><code id="dataset-id"></code></p>
+          <p class="stats" id="dataset-stats"></p><p class="notice" id="task-hint"></p>
+          <form id="target-form"><label for="target-column">目标列（聚类 / 降维可不选择）</label>
+            <div class="stack"><select id="target-column"></select><button type="submit" id="target-button">保存目标列</button></div>
+          </form><p id="target-message" class="notice" role="status"></p>
+          <h3>字段与缺失值</h3><div class="table-wrap"><table id="columns-table"></table></div>
+          <h3>数据预览 · 前 20 行</h3><p class="muted">单元格预览最多 500 字符；缺失值显示为 ∅。</p><div class="table-wrap"><table id="preview-table"></table></div>
+          <details><summary>数值摘要与文件信息</summary><pre id="dataset-summary"></pre></details>
+        </div>
+      </section>
+    </div>
+    <section class="card"><h2>03 / Model Registry</h2>
+      <p class="muted">已注册两个 sklearn 分类模型。展开查看允许的参数、指标和执行要求。</p>
+      <div id="model-list">正在读取模型注册表…</div>
+      <p class="muted">当前支持命令行分类基线及后台 HPO。网页训练提交、进度展示、Qwen ReAct、MCP 和实验审批将在后续阶段接入。</p>
+      <a href="/docs">查看 API 文档 ↗</a>
+    </section>
+    <footer>CPU 优先 · 单 Worker 规划 · Qwen 商用 API · PyTorch 可选扩展</footer>
+  </main>
+</body>
+</html>
