@@ -18,16 +18,16 @@ W14-A 关注 Agent Loop、ReAct、MCP 和 Tool Runtime。首轮使用 Iris、逻
 
 | 负责人 | 开发职责 | 交付和验收 | 任务 |
 |---|---|---|---|
-| **A 总工** | 统一接口、身份与权限校验、计划版本、审批、Run 编排、PR 评审与合并 | 先交接口样例与单 Worker 提交链路，再联合 B、D 证明超时后的同键重试只创建一个 Run。统筹报告和答辩 | [#1](https://github.com/Jeremy917-Hui/agent-hpo/issues/1) |
-| **B Agent 与 MCP** | Qwen API、自定义 ReAct、MCP Server/Client、工具发现、schema、超时与重试 | 先交一次真实规划调用轨迹，再交错误测试、有限重试和调用延迟记录 | [#2](https://github.com/Jeremy917-Hui/agent-hpo/issues/2)、[#3](https://github.com/Jeremy917-Hui/agent-hpo/issues/3) |
+| **A 总工** | 接口、鉴权与审批、端到端联调、演示、正式对照实验和报告 | 统一数据、配置与验收标准，集中运行正式实验并解释结果。B、C、D 提供脚本、事件和各自的模块测试 | [#1](https://github.com/Jeremy917-Hui/agent-hpo/issues/1)、[#6](https://github.com/Jeremy917-Hui/agent-hpo/issues/6)、[#7](https://github.com/Jeremy917-Hui/agent-hpo/issues/7) |
+| **B Agent 与 MCP** | Qwen API、自定义 ReAct、MCP Server/Client、工具发现、schema 与结构化结果 | 用公开 Iris 交付一次真实规划调用轨迹、调用序列图和对应测试，给 D 提供可独立调用的工具入口 | [#2](https://github.com/Jeremy917-Hui/agent-hpo/issues/2) |
 | **C Worker 与执行** | Worker、Trial 状态与执行记录，后续负责共享 Study、预算、心跳和恢复 | 先复现单 Worker，验证状态、结果和耗时能供联调。闭环验收后再验证多个 Worker 并发执行同一 Study | [#4](https://github.com/Jeremy917-Hui/agent-hpo/issues/4)、[#5](https://github.com/Jeremy917-Hui/agent-hpo/issues/5) |
-| **D 演示与实验** | 固定公开数据和验收步骤，组织性能对照与故障实验 | 先复现 Iris CLI 基线和完整演示，再交协议延迟、故障时间线、Worker 吞吐及复现记录 | [#6](https://github.com/Jeremy917-Hui/agent-hpo/issues/6)、[#7](https://github.com/Jeremy917-Hui/agent-hpo/issues/7) |
+| **D Tool Runtime 与可靠性** | 调用超时、错误和重试策略、调用事件、故障注入 | 与 A 对齐幂等和审批语义、与 B 对接 MCP 调用入口。交付可复现的故障注入和调用测量脚本，供 A 统一跑正式实验 | [#3](https://github.com/Jeremy917-Hui/agent-hpo/issues/3) |
 
-四人各自提交代码或实验、可复现记录和对应报告素材。总工确定优先级和合并顺序，统一评审 PR、决定是否合并，并验收整条链路。演示界面优先保证用户能看懂计划、完成审批和查看结果。
+四人各自提交代码、可复现测试和对应报告素材。总工确定接口、优先级和集成验收标准，并统一复现、整理正式实验结果。仓库维护方负责 PR 检查和合并。演示界面优先保证用户能看懂计划、完成审批和查看结果。
 
 ## 文件边界与先约定的接口
 
-A 负责方案、审批及 Run 服务入口。B 负责 Agent 与工具实现。C 维护 `app/worker.py`、`app/hpo.py` 和 `app/runs.py` 的执行与存储部分。D 负责应用验证脚本、数据与指标配置、最小演示和实验材料。`app/main.py`、`app/config.py`、依赖文件和 Adapter 契约由总工协调。C 与 A 对齐 Run 状态和 Worker 事件字段，D 用这些接口独立准备验收。
+A 负责方案、鉴权审批、Run 服务入口及统一验收脚本。B 负责 ReAct 和 MCP 协议层，定义工具 schema 和结构化返回。C 维护 `app/worker.py`、`app/hpo.py` 和 `app/runs.py` 的执行与存储部分。D 负责调用层的超时、重试、结构化错误、事件与故障注入。A、B、D 先约定调用入口、请求关联 ID 及错误字段。C 与 A 对齐 Run 状态和 Worker 事件。
 
 第一轮应先冻结以下契约，再并行开发：
 
@@ -39,16 +39,16 @@ A 负责方案、审批及 Run 服务入口。B 负责 Agent 与工具实现。C
 
 B、C、D 先用接口样例和现有 M3 CLI 并行开发。联调按以下顺序推进。
 
-1. **单 Worker 闭环。** A 定接口与审批，B 交付 Qwen 规划和只读 MCP 工具，C 独立复现 Worker 及结果记录，D 用 Iris 验收完整流程并保存调用轨迹。
-2. **工具可靠性。** A、B、D 联合注入 Run 写入后的响应超时，验证同键重试只创建一个 Run。补齐 schema、发现、鉴权和审批的对照案例，并测直接调用与 MCP 调用。
-3. **并行性能。** 首轮验收后，C 先让两个 Worker 共享 Study 并守住全局预算。D 用固定工作量测 1/2/4 Worker，按预实验和资源评估 8 Worker 及跨节点。
+1. **单 Worker 闭环。** A 定接口与审批，B 交付 Qwen 规划和只读 MCP 工具，C 独立复现 Worker 及结果记录，D 交付基础调用事件。A 用 Iris 验收全流程并保存 ReAct 调用轨迹。
+2. **工具可靠性。** D 交付故障注入、有限重试和调用测量，B 提供真实工具入口，A 统一跑 schema、发现、鉴权、审批和“Run 写入后响应超时”的验收。保留调用序列图、相同幂等键的请求和对应 Run 记录。
+3. **并行性能。** 首轮验收后，C 先让两个 Worker 共享 Study 并守住全局预算。A 用 C 提供的入口固定工作量测 1/2/4 Worker，按预实验和资源评估 8 Worker 及跨节点。
 
 多机器不能通过 GitHub 或共享 SQLite 文件交换运行状态。应使用 PostgreSQL 共享 Optuna 状态，并明确 Run/Worker 元数据的服务访问或数据库方案。当前本地单槽不能直接放宽成多 Worker；需要原子预算分配及故障后的配额核对。
 
 ## GitHub 工作方式
 
 - `main` 保持可运行。按 Issue 开分支，例如 `feat/plan-approval`、`feat/agent-mcp`、`feat/distributed-worker`、`feat/application-validation`，分小批提交。
-- PR 作者关联对应 Issue，写明改动、复现命令和测试结果，并解释自己提交的实现。总工评审并合并，Codex 可协助检查差异、运行测试和整理评审意见。合并前由总工确认验收条件是否满足。
+- PR 作者关联对应 Issue，写明改动、复现命令和测试结果，并解释自己提交的实现。仓库维护方检查差异、测试结果和验收条件后管理、合并 PR。总工协调接口变更和端到端验收。
 - 每个 PR 运行现有测试和对应新增测试，并写清结果与未完成项。将来 CI 不应默认调用收费 Qwen API 或租赁云资源；真实服务测试采用显式配置和受控预算。
 - 大型接口变动先约定，再改实现，避免两个人分别定义一份 Plan、Run 状态或模型规范。
 - 报告分工应依据真实提交、实验执行和分析记录，不把全部团队成果记为某一个人的工作。
