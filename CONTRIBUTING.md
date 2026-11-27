@@ -14,12 +14,12 @@
 
 | 负责人 | 开发职责 | 交付和验收 | 任务 |
 |---|---|---|---|
-| **A 总工** | 决定接口和技术取舍，负责计划版本、审批、Run 编排、结果接入及合并 | 接口样例、审批测试、端到端验收。未审批不得执行，修改计划使旧审批失效，重复提交只产生一个 Run。统筹报告和答辩 | [#1](https://github.com/Jeremy917-Hui/agent-hpo/issues/1) |
+| **A 总工** | 决定接口和技术取舍，负责计划版本、审批、Run 编排、结果接入、PR 评审与合并 | 接口样例、审批测试、端到端验收。未审批不得执行，修改计划使旧审批失效，重复提交只产生一个 Run。统筹报告和答辩 | [#1](https://github.com/Jeremy917-Hui/agent-hpo/issues/1) |
 | **B Agent 与 MCP** | Qwen 客户端、自定义 ReAct、MCP Server/Client、工具校验、超时和重试 | 用真实 Qwen + MCP 生成实验计划，产出调用轨迹、状态机或调用序列图、错误测试以及报告的方法章节 | [#2](https://github.com/Jeremy917-Hui/agent-hpo/issues/2)、[#3](https://github.com/Jeremy917-Hui/agent-hpo/issues/3) |
 | **C 分布式执行** | PostgreSQL 共享 Study、Worker Pull、全局 Trial 配额、心跳与恢复 | 多 Worker 并发完成同一 Study，预算可核对。提交部署手册、失联和恢复测试、Worker 事件及报告的系统设计章节 | [#4](https://github.com/Jeremy917-Hui/agent-hpo/issues/4)、[#5](https://github.com/Jeremy917-Hui/agent-hpo/issues/5) |
 | **D 应用验证与实验** | 公开数据、默认参数与 HPO 对比、最小演示、可复现实验 | 先验证分类闭环，逐步补齐回归、聚类、降维。组织 Agent/MCP 对照、Worker 扩展和故障注入实验，提交复现步骤、数据、图表与分析 | [#6](https://github.com/Jeremy917-Hui/agent-hpo/issues/6)、[#7](https://github.com/Jeremy917-Hui/agent-hpo/issues/7) |
 
-四人各自提交代码或实验、可复现记录和对应报告素材。总工确定优先级和合并顺序，组织另一位成员评审 PR，并验收整条链路。演示界面优先保证用户能看懂计划、完成审批和查看结果。
+四人各自提交代码或实验、可复现记录和对应报告素材。总工确定优先级和合并顺序，统一评审 PR、决定是否合并，并验收整条链路。演示界面优先保证用户能看懂计划、完成审批和查看结果。
 
 ## 文件边界与先约定的接口
 
@@ -44,7 +44,7 @@ B、C、D 先用接口样例和现有 M3 CLI 并行开发。联调按以下顺�
 ## GitHub 工作方式
 
 - `main` 保持可运行。按 Issue 开分支，例如 `feat/plan-approval`、`feat/agent-mcp`、`feat/distributed-worker`、`feat/application-validation`，分小批提交。
-- PR 关联对应 Issue，写明改动和验收结果，由另一位成员评审，总工负责合并。
+- PR 作者关联对应 Issue，写明改动、复现命令和测试结果，并解释自己提交的实现。总工评审并合并，Codex 可协助检查差异、运行测试和整理评审意见。合并前由总工确认验收条件是否满足。
 - 每个 PR 运行现有测试和对应新增测试，并写清结果与未完成项。将来 CI 不应默认调用收费 Qwen API 或租赁云资源；真实服务测试采用显式配置和受控预算。
 - 大型接口变动先约定，再改实现，避免两个人分别定义一份 Plan、Run 状态或模型规范。
 - 报告分工应依据真实提交、实验执行和分析记录，不把全部团队成果记为某一个人的工作。
