@@ -4,7 +4,7 @@
 
 Windows Local Mode。采用 Python + FastAPI + Jinja2 + 原生 JavaScript，逐阶段实现 Qwen API、自定义 ReAct、MCP、Optuna 与独立 Worker。当前阶段进度以本文件和实际测试为准。
 
-两人协作分工、接口边界、GitHub 工作方式和队友首次启动步骤见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+**当前进度** M0–M3 已验收，公开 Iris 数据已跑通单 Worker 分类 HPO。四人分工和联调次序见 [协作指南](CONTRIBUTING.md)，剩余工作在 [GitHub Issues](https://github.com/Jeremy917-Hui/agent-hpo/issues) 跟踪。
 
 ## 环境与启动
 

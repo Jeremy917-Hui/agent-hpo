@@ -1,6 +1,6 @@
-# 两人协作与开发交接
+# 四人协作与开发交接
 
-本文基于当前 M3 开发验收状态。角色分配为建议，尚未代表队友已接受分工。项目按用户要求托管于公开仓库 [Jeremy917-Hui/agent-hpo](https://github.com/Jeremy917-Hui/agent-hpo)。协作者由仓库所有者邀请。
+当前基线为 M3 单 Worker HPO。仓库所有者 `Jeremy917-Hui` 担任总工。B、C、D 为角色代称，由总工与队友确认人选后在 GitHub 上分配。开发进度见 [GitHub Issues](https://github.com/Jeremy917-Hui/agent-hpo/issues)。
 
 ## 当前基线
 
@@ -10,22 +10,20 @@
 
 当前多个 Run 是由单 Worker 顺序处理，不是同一 Study 上多个 Worker 并行；请勿把开发验收结果写成分布式实验结论。
 
-## 建议分工
+## 四人分工与验收
 
-| 负责人 | 主模块 | 验收输出 |
-|---|---|---|
-| 你（A） | Qwen 客户端、自定义 ReAct、MCP Client/HPO MCP Server、工具 Schema 与结构化错误 | 通过真实 Qwen + MCP 检查数据/查询模型/生成方案；有步骤、工具调用和错误记录，最大步数与超时有效 |
-| 你（A） | Plan ID/Version、用户审批、审批后的后端提交、Agent 结果解释 | 未审批不可执行；修改方案使旧审批失效；审批只授权对应配置；实验完成后可生成结果解读 |
-| 队友（B） | PostgreSQL/Optuna Shared Storage、多 Worker Pull、全局预算和 Worker 生命周期 | 同一 Study 的多个 Worker 并行执行，失败/重试不绕过预算，保留 Worker/Trial 事件 |
-| 队友（B） | 心跳、故障识别、安全重试/恢复、性能导出和故障注入 | 区分超时与失败；未知完成状态先查询/核对；能测成功率、重复 Run、恢复时间和资源利用率 |
-| 你（A）牵头，B 评审 | 分类/回归/聚类/降维应用验证、代表性公开数据与默认/优化对比 | 按任务定义评价流程和指标，避免测试集泄漏；不为模型数量延迟单 Worker 主流程或系统实验 |
-| 两人共同 | 最小网页闭环、实验设计、报告、海报与答辩 | A 整合论述、Agent/应用实验；B 写系统执行/性能/可靠性部分；两人都复核关键结果 |
+| 负责人 | 开发职责 | 交付和验收 | 任务 |
+|---|---|---|---|
+| **A 总工** | 决定接口和技术取舍，负责计划版本、审批、Run 编排、结果接入及合并 | 接口样例、审批测试、端到端验收。未审批不得执行，修改计划使旧审批失效，重复提交只产生一个 Run。统筹报告和答辩 | [#1](https://github.com/Jeremy917-Hui/agent-hpo/issues/1) |
+| **B Agent 与 MCP** | Qwen 客户端、自定义 ReAct、MCP Server/Client、工具校验、超时和重试 | 用真实 Qwen + MCP 生成实验计划，产出调用轨迹、状态机或调用序列图、错误测试以及报告的方法章节 | [#2](https://github.com/Jeremy917-Hui/agent-hpo/issues/2)、[#3](https://github.com/Jeremy917-Hui/agent-hpo/issues/3) |
+| **C 分布式执行** | PostgreSQL 共享 Study、Worker Pull、全局 Trial 配额、心跳与恢复 | 多 Worker 并发完成同一 Study，预算可核对。提交部署手册、失联和恢复测试、Worker 事件及报告的系统设计章节 | [#4](https://github.com/Jeremy917-Hui/agent-hpo/issues/4)、[#5](https://github.com/Jeremy917-Hui/agent-hpo/issues/5) |
+| **D 应用验证与实验** | 公开数据、默认参数与 HPO 对比、最小演示、可复现实验 | 先验证分类闭环，逐步补齐回归、聚类、降维。组织 Agent/MCP 对照、Worker 扩展和故障注入实验，提交复现步骤、数据、图表与分析 | [#6](https://github.com/Jeremy917-Hui/agent-hpo/issues/6)、[#7](https://github.com/Jeremy917-Hui/agent-hpo/issues/7) |
 
-不假定队友已经擅长某一技术。如能力/兴趣不同可以交换 A、B，但应保留模块边界和共同验收。前端后续优先让普通用户理解和完成操作：模型名称、适用任务和参数用表格/卡片表达，原始 JSON 放入开发者详情；美化排在核心闭环和课程实验之后。
+四人各自提交代码或实验、可复现记录和对应报告素材。总工确定优先级和合并顺序，组织另一位成员评审 PR，并验收整条链路。演示界面优先保证用户能看懂计划、完成审批和查看结果。
 
 ## 文件边界与先约定的接口
 
-A 主要新增 Agent、MCP、方案和审批模块；目录在真正实现时创建，不生成空壳。B 主要维护 `app/worker.py`、`app/hpo.py`、`app/runs.py` 的执行/存储部分。`app/main.py`、`app/config.py`、依赖文件和现有 Adapter 契约属于共同接口，修改前在对应 Issue/PR 中说明。
+A 负责方案、审批及 Run 服务入口。B 负责 Agent 与工具实现。C 维护 `app/worker.py`、`app/hpo.py` 和 `app/runs.py` 的执行与存储部分。D 负责应用验证脚本、数据与指标配置、最小演示和实验材料。`app/main.py`、`app/config.py`、依赖文件和 Adapter 契约由总工协调。D 扩展模型或任务类型时，由 C 一起检查对 HPO 引擎的影响。
 
 第一轮应先冻结以下契约，再并行开发：
 
@@ -35,14 +33,18 @@ A 主要新增 Agent、MCP、方案和审批模块；目录在真正实现时创
 4. `run_id`、`worker_id`、`trial_number`、`tool_call_id` 及 UTC 时间/单调耗时的事件格式。
 5. 结构化错误的 code、可重试性和副作用状态；超时不代表一定未执行。
 
-B 可以通过现有开发 CLI 独立验证系统侧改动，不必等待真实 LLM。A 可以用可控的执行服务替身验证 Agent/审批，再联合真实后端联调。主分支按里程碑验收；两条功能分支可以并行推进，未完成的能力不得在主分支标为已实现。
+B、C、D 先用接口样例和现有 M3 CLI 并行开发。联调按以下顺序推进。
+
+1. **接口和单 Worker 闭环。** A 确认接口，B 交付规划与只读工具，D 用公开分类数据验收从需求、工具调用、审批到运行和结果的完整流程。
+2. **共享存储和可靠性。** C 交付同一 Study 的共享存储、配额与恢复机制，B 交付可测量的超时和重试。D 与 B、C 核对数据记录并开展实验。
+3. **课程证据与交付。** 先复现 1/2/4 Worker、工具对照与失败案例，再按资源测 8 Worker 和跨节点。四类应用、报告图表和答辩材料按实际运行结果汇总，16 Worker 由预实验和预算决定。PyTorch 和 MatPool 写操作列为扩展。
 
 多机器不能通过 GitHub 或共享 SQLite 文件交换运行状态。应使用 PostgreSQL 共享 Optuna 状态，并明确 Run/Worker 元数据的服务访问或数据库方案。当前本地单槽不能直接放宽成多 Worker；需要原子预算分配及故障后的配额核对。
 
 ## GitHub 工作方式
 
-- `main` 保持可运行；A、B 分别使用 `feat/agent-mcp`、`feat/distributed-worker` 等功能分支，小范围提交。
-- 每个任务写清负责人、输入输出和验收条件；通过 Pull Request 合并，由另一位成员评审。
+- `main` 保持可运行。按 Issue 开分支，例如 `feat/plan-approval`、`feat/agent-mcp`、`feat/distributed-worker`、`feat/application-validation`，分小批提交。
+- PR 关联对应 Issue，写明改动和验收结果，由另一位成员评审，总工负责合并。
 - 每个 PR 运行现有测试和对应新增测试，并写清结果与未完成项。将来 CI 不应默认调用收费 Qwen API 或租赁云资源；真实服务测试采用显式配置和受控预算。
 - 大型接口变动先约定，再改实现，避免两个人分别定义一份 Plan、Run 状态或模型规范。
 - 报告分工应依据真实提交、实验执行和分析记录，不把全部团队成果记为某一个人的工作。
@@ -85,4 +87,4 @@ py -3.11 -m venv .venv
 
 开发测试、模拟故障和真实云端实验分别标注，保留重复运行和原始测量记录。API/工具耗时、业务处理耗时、训练耗时分别统计。Agent 结果分析不反复轮询收费 LLM；租赁、释放、扣费必须经用户明确确认。
 
-报告 PDF（不超过 5 页）、代码 ZIP、项目海报 PDF 以课程平台最新要求为准。两人各自维护本模块章节、实验图表和贡献记录，再统一整合；不等全部开发结束才收集实验依据。
+报告 PDF（不超过 5 页）、代码 ZIP、项目海报 PDF 以课程平台最新要求为准。四人从各自任务开始积累章节、实验图表和贡献记录，交由总工统一整合，每人复核自己的实验和结论。
