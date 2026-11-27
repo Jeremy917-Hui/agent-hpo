@@ -1,10 +1,14 @@
-# Machine Learning HPO Agent
+# ReAct 与 MCP 工具运行时 · 以机器学习调参为例
 
 公开仓库：[Jeremy917-Hui/agent-hpo](https://github.com/Jeremy917-Hui/agent-hpo)。
 
 Windows Local Mode。采用 Python + FastAPI + Jinja2 + 原生 JavaScript，逐阶段实现 Qwen API、自定义 ReAct、MCP、Optuna 与独立 Worker。当前阶段进度以本文件和实际测试为准。
 
-**当前进度** M0–M3 已验收，公开 Iris 数据已跑通单 Worker 分类 HPO。四人分工和联调次序见 [协作指南](CONTRIBUTING.md)，剩余工作在 [GitHub Issues](https://github.com/Jeremy917-Hui/agent-hpo/issues) 跟踪。
+**课程选题 W14-A** 研究 Agent 跨进程调用工具时，如何发现接口、校验参数、验证身份和权限，并在响应超时后安全重试。机器学习调参提供一个会创建后台任务的真实场景。
+
+**当前进度** M0–M3 已验收。公开 Iris 数据已跑通两个 sklearn 分类模型的单 Worker 调参，当前从开发 CLI 提交。Qwen ReAct、MCP 和网页审批是接下来的联调工作。四人分工见 [协作指南](CONTRIBUTING.md)，具体任务见 [GitHub Issues](https://github.com/Jeremy917-Hui/agent-hpo/issues)。
+
+**首轮目标** 用 Iris 跑通上传、自然语言需求、MCP 查数据与模型、计划审批、异步返回 Run ID、后台训练和结果展示。模型沿用逻辑回归与随机森林。更多模型、其他任务类型和多轮自动调参放在闭环验收之后。
 
 ## 环境与启动
 
@@ -204,12 +208,18 @@ Worker 只接收经验证的 Run 配置，解析 Registry，再调用适配器�
 
 ## 路线与当前边界
 
-以 2026-11-17 用户本次消息为准：M0 初始化 → M1 数据集 → M2 Registry → M3 Optuna/Worker → M4 Qwen/ReAct/MCP → M5 审批/Orchestrator → M6 结果 → M7 PostgreSQL/多 Worker → M8 MatPool。原说明书的部分编号不同。
+实施顺序为 M0 初始化 → M1 数据集 → M2 Registry → M3 Optuna/Worker → M4 Qwen/ReAct/MCP → M5 审批/Orchestrator → M6 结果 → M7 PostgreSQL/多 Worker → M8 MatPool。
 
 当前 M0、M1、M2 分类核心及 M3 单 Worker 后台 HPO 已实现。M2 的其他三类任务以及 M4–M8 尚未实现；没有 LLM 调用、MCP、审批或云资源操作。单 Worker 使用本地 SQLite Optuna Storage；多 Worker 才引入 PostgreSQL，并坚持 Worker Pull + Shared Storage。产品实验提交将绑定审批并异步返回 Run ID，当前仅有开发 CLI 提交。MatPool 写操作必须单独获得用户明确确认。
 
-课程选题为 Agent Loop/ReAct/MCP/Tool Runtime；以 `补充说明1.txt` 为研究目标补充。公开数据上的机器学习任务是应用基础，正式报告还需分布式性能与可靠性分析。后续正式 Worker 规模计划 1/2/4/8，按瓶颈和费用考虑 16；比较固定工作量、随资源增长工作量及单机/跨节点，区分 MCP 通信、业务处理和训练耗时。正式实验尚未运行。
-
-用户可使用矩池云 CPU/GPU 资源及阿里云商用 Qwen API。本地 sklearn 开发先用 CPU，资源租赁及收费前需展示具体配置和预计费用并取得明确确认；GPU 仅在任务确实需要时考虑。PyTorch、MatPool 写操作属于后续扩展，不为追求模型数量或界面效果延迟单 Worker 主流程、共享存储及可靠性实验。
+Qwen 通过阿里云商用 API Key 调用。后续性能实验可使用矩池云 CPU/GPU 资源。本地 sklearn 开发先用 CPU，资源租赁及收费前需展示具体配置和预计费用并取得明确确认；GPU 仅在任务确实需要时考虑。PyTorch、MatPool 写操作属于后续扩展，不为追求模型数量或界面效果延迟单 Worker 主流程、共享存储及可靠性实验。
 
 版本核验来源：[FastAPI PyPI](https://pypi.org/project/fastapi/)、[MCP 官方 SDK](https://github.com/modelcontextprotocol/python-sdk)、[Optuna PyPI](https://pypi.org/project/optuna/)、[Scikit-learn 安装文档](https://scikit-learn.org/stable/install.html)。当前 sklearn 1.9.1、Optuna 5.1.0 已安装；后续候选 MCP 2.3.0 尚未安装，接入时重新验证兼容性。
+
+## 课程报告预定证据
+
+1. **工具调用与权限。** 用 Iris 的正常调用轨迹和调用序列图说明服务入口、MCP 工具发现、schema 校验、鉴权和审批，配上无效请求的处理结果。
+2. **故障与重试。** 注入“Run 已写入、响应延迟到客户端超时”的故障。同键同方案重试应取回原 Run ID，数据库和 Worker 事件应能核对创建数量及执行轨迹。同键改方案应返回冲突。
+3. **性能。** 对同一只读工具比较直接调用与 MCP 调用，统计延迟和成功率，单独记录 Qwen 推理耗时。多 Worker 阶段用固定 Trial 配置和中等规模的公开分类数据测吞吐与加速比，计划规模为 1/2/4/8，实际范围和报告结论由预实验及资源决定。
+
+以上是计划验收项。Iris 单 Worker 是现有功能基线，正式性能和故障实验尚未运行。

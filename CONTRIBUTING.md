@@ -2,6 +2,10 @@
 
 当前基线为 M3 单 Worker HPO。仓库所有者 `Jeremy917-Hui` 担任总工。B、C、D 为角色代称，由总工与队友确认人选后在 GitHub 上分配。开发进度见 [GitHub Issues](https://github.com/Jeremy917-Hui/agent-hpo/issues)。
 
+## 课程目标与首轮范围
+
+W14-A 关注 Agent Loop、ReAct、MCP 和 Tool Runtime。首轮使用 Iris、逻辑回归、随机森林和一个后台 Worker，跑通 Qwen 规划、MCP 查询、用户审批、异步提交与结果展示。报告准备一张调用序列图，重点验证跨进程调用的 schema、服务和工具发现、身份与权限、幂等、超时及重试。模型和任务类型扩展、多轮自动调参放在首轮验收之后。
+
 ## 当前基线
 
 已经实现：FastAPI、本地 Dashboard、CSV 上传检查、SQLite 数据集索引、框架适配契约、两个 sklearn 分类模型、离线基线、Optuna 单 Worker 异步 HPO、开发 CLI、Run/Trial 只读查询、基础幂等与协作取消/显式恢复。完整测试共 50 项通过；Iris 的 8 Trial 后台验收已通过。
@@ -14,30 +18,30 @@
 
 | 负责人 | 开发职责 | 交付和验收 | 任务 |
 |---|---|---|---|
-| **A 总工** | 决定接口和技术取舍，负责计划版本、审批、Run 编排、结果接入、PR 评审与合并 | 接口样例、审批测试、端到端验收。未审批不得执行，修改计划使旧审批失效，重复提交只产生一个 Run。统筹报告和答辩 | [#1](https://github.com/Jeremy917-Hui/agent-hpo/issues/1) |
-| **B Agent 与 MCP** | Qwen 客户端、自定义 ReAct、MCP Server/Client、工具校验、超时和重试 | 用真实 Qwen + MCP 生成实验计划，产出调用轨迹、状态机或调用序列图、错误测试以及报告的方法章节 | [#2](https://github.com/Jeremy917-Hui/agent-hpo/issues/2)、[#3](https://github.com/Jeremy917-Hui/agent-hpo/issues/3) |
-| **C 分布式执行** | PostgreSQL 共享 Study、Worker Pull、全局 Trial 配额、心跳与恢复 | 多 Worker 并发完成同一 Study，预算可核对。提交部署手册、失联和恢复测试、Worker 事件及报告的系统设计章节 | [#4](https://github.com/Jeremy917-Hui/agent-hpo/issues/4)、[#5](https://github.com/Jeremy917-Hui/agent-hpo/issues/5) |
-| **D 应用验证与实验** | 公开数据、默认参数与 HPO 对比、最小演示、可复现实验 | 先验证分类闭环，逐步补齐回归、聚类、降维。组织 Agent/MCP 对照、Worker 扩展和故障注入实验，提交复现步骤、数据、图表与分析 | [#6](https://github.com/Jeremy917-Hui/agent-hpo/issues/6)、[#7](https://github.com/Jeremy917-Hui/agent-hpo/issues/7) |
+| **A 总工** | 统一接口、身份与权限校验、计划版本、审批、Run 编排、PR 评审与合并 | 先交接口样例与单 Worker 提交链路，再联合 B、D 证明超时后的同键重试只创建一个 Run。统筹报告和答辩 | [#1](https://github.com/Jeremy917-Hui/agent-hpo/issues/1) |
+| **B Agent 与 MCP** | Qwen API、自定义 ReAct、MCP Server/Client、工具发现、schema、超时与重试 | 先交一次真实规划调用轨迹，再交错误测试、有限重试和调用延迟记录 | [#2](https://github.com/Jeremy917-Hui/agent-hpo/issues/2)、[#3](https://github.com/Jeremy917-Hui/agent-hpo/issues/3) |
+| **C Worker 与执行** | Worker、Trial 状态与执行记录，后续负责共享 Study、预算、心跳和恢复 | 先复现单 Worker，验证状态、结果和耗时能供联调。闭环验收后再验证多个 Worker 并发执行同一 Study | [#4](https://github.com/Jeremy917-Hui/agent-hpo/issues/4)、[#5](https://github.com/Jeremy917-Hui/agent-hpo/issues/5) |
+| **D 演示与实验** | 固定公开数据和验收步骤，组织性能对照与故障实验 | 先复现 Iris CLI 基线和完整演示，再交协议延迟、故障时间线、Worker 吞吐及复现记录 | [#6](https://github.com/Jeremy917-Hui/agent-hpo/issues/6)、[#7](https://github.com/Jeremy917-Hui/agent-hpo/issues/7) |
 
 四人各自提交代码或实验、可复现记录和对应报告素材。总工确定优先级和合并顺序，统一评审 PR、决定是否合并，并验收整条链路。演示界面优先保证用户能看懂计划、完成审批和查看结果。
 
 ## 文件边界与先约定的接口
 
-A 负责方案、审批及 Run 服务入口。B 负责 Agent 与工具实现。C 维护 `app/worker.py`、`app/hpo.py` 和 `app/runs.py` 的执行与存储部分。D 负责应用验证脚本、数据与指标配置、最小演示和实验材料。`app/main.py`、`app/config.py`、依赖文件和 Adapter 契约由总工协调。D 扩展模型或任务类型时，由 C 一起检查对 HPO 引擎的影响。
+A 负责方案、审批及 Run 服务入口。B 负责 Agent 与工具实现。C 维护 `app/worker.py`、`app/hpo.py` 和 `app/runs.py` 的执行与存储部分。D 负责应用验证脚本、数据与指标配置、最小演示和实验材料。`app/main.py`、`app/config.py`、依赖文件和 Adapter 契约由总工协调。C 与 A 对齐 Run 状态和 Worker 事件字段，D 用这些接口独立准备验收。
 
 第一轮应先冻结以下契约，再并行开发：
 
 1. 实验方案字段：Dataset ID/数据 SHA256、任务类型、目标列、模型、参数空间、指标/方向、全局 Trial 预算、种子/切分策略、资源限制。
-2. Plan ID、Version、审批记录和所有权：审批由后端验证，不接受 LLM 自称“已批准”。
+2. Plan ID、版本、实验所有权和审批记录。后端先校验调用者身份与权限，再校验具体方案的审批。
 3. Run 提交/查询/取消/结果的服务入口；保留现有 Run ID 与幂等键的区分。
 4. `run_id`、`worker_id`、`trial_number`、`tool_call_id` 及 UTC 时间/单调耗时的事件格式。
-5. 结构化错误的 code、可重试性和副作用状态；超时不代表一定未执行。
+5. MCP 服务地址配置和工具发现方式，以及结构化错误的 code、可重试性和执行结果是否已确定。响应超时后通过查询或同键重试确认状态。
 
 B、C、D 先用接口样例和现有 M3 CLI 并行开发。联调按以下顺序推进。
 
-1. **接口和单 Worker 闭环。** A 确认接口，B 交付规划与只读工具，D 用公开分类数据验收从需求、工具调用、审批到运行和结果的完整流程。
-2. **共享存储和可靠性。** C 交付同一 Study 的共享存储、配额与恢复机制，B 交付可测量的超时和重试。D 与 B、C 核对数据记录并开展实验。
-3. **课程证据与交付。** 先复现 1/2/4 Worker、工具对照与失败案例，再按资源测 8 Worker 和跨节点。四类应用、报告图表和答辩材料按实际运行结果汇总，16 Worker 由预实验和预算决定。PyTorch 和 MatPool 写操作列为扩展。
+1. **单 Worker 闭环。** A 定接口与审批，B 交付 Qwen 规划和只读 MCP 工具，C 独立复现 Worker 及结果记录，D 用 Iris 验收完整流程并保存调用轨迹。
+2. **工具可靠性。** A、B、D 联合注入 Run 写入后的响应超时，验证同键重试只创建一个 Run。补齐 schema、发现、鉴权和审批的对照案例，并测直接调用与 MCP 调用。
+3. **并行性能。** 首轮验收后，C 先让两个 Worker 共享 Study 并守住全局预算。D 用固定工作量测 1/2/4 Worker，按预实验和资源评估 8 Worker 及跨节点。
 
 多机器不能通过 GitHub 或共享 SQLite 文件交换运行状态。应使用 PostgreSQL 共享 Optuna 状态，并明确 Run/Worker 元数据的服务访问或数据库方案。当前本地单槽不能直接放宽成多 Worker；需要原子预算分配及故障后的配额核对。
 
@@ -83,7 +87,7 @@ py -3.11 -m venv .venv
 
 ## 实验与提交物
 
-共同维护三条证据线：真实机器学习任务完成、分布式性能、可靠性与失败语义。正式 Worker 规模计划 1/2/4/8，按预实验及预算决定是否增加 16；区分固定工作量、随资源增加工作量、固定总 Worker 数的跨节点对照，控制模型/数据/Trial 配置和硬件资源。
+报告保留三组证据。第一组用 Iris 证明真实任务跑通并呈现调用轨迹。第二组记录 schema、发现、鉴权、审批和故障注入的预期与实际结果，重点核对重试前后的 Run ID、数据库创建次数以及 Worker 事件。第三组比较同一只读工具的直接调用与 MCP 调用，并用中等规模公开分类数据和固定的 Trial 配置测 Worker 吞吐与加速比。
 
 开发测试、模拟故障和真实云端实验分别标注，保留重复运行和原始测量记录。API/工具耗时、业务处理耗时、训练耗时分别统计。Agent 结果分析不反复轮询收费 LLM；租赁、释放、扣费必须经用户明确确认。
 
